@@ -17,16 +17,56 @@ public class CarMovement : MonoBehaviour {
 	[SerializeField]
 	private float mRotationVelocity;
 
+	public float tmpSpd;
+	public float tmpMaxSpd;
+	public float tmpRot;
+	public float tmpDrag;
+
 
 
 	// Use this for initialization
-	void Start () {
-		
+	void Start ()
+	{
+		GetComponent<Rigidbody>().drag = tmpDrag;
 	}
 	
 	// Update is called once per frame
-	void Update () {
-		checkInput();
+	void Update ()
+	{
+		//checkInput();
+		tmpMovement();
+		tmpTerminalVelocity();
+	}
+
+	void tmpMovement()
+	{
+		// add forward and backward movement using GetAxis
+		GetComponent<Rigidbody>().AddForce(transform.forward * Input.GetAxis("Vertical") * tmpSpd);
+		// rotate the vehicle using GetAxis
+		transform.Rotate(0, Input.GetAxis("Horizontal") * tmpRot, 0);
+
+		Debug.DrawLine(transform.position + transform.forward * 5, transform.position);
+	}
+
+	void tmpTerminalVelocity()
+	{
+		if (GetComponent<Rigidbody>().velocity.x > tmpMaxSpd)
+		{
+			GetComponent<Rigidbody>().velocity = new Vector3(tmpMaxSpd, GetComponent<Rigidbody>().velocity.y, GetComponent<Rigidbody>().velocity.z);
+		}
+		if (GetComponent<Rigidbody>().velocity.x < tmpMaxSpd * -1)
+		{
+			GetComponent<Rigidbody>().velocity = new Vector3(tmpMaxSpd * -1, GetComponent<Rigidbody>().velocity.y, GetComponent<Rigidbody>().velocity.z);
+		}
+
+		if (GetComponent<Rigidbody>().velocity.z > tmpMaxSpd)
+		{
+			GetComponent<Rigidbody>().velocity = new Vector3(GetComponent<Rigidbody>().velocity.x, GetComponent<Rigidbody>().velocity.y, tmpMaxSpd);
+		}
+		if (GetComponent<Rigidbody>().velocity.z < tmpMaxSpd * -1)
+		{
+			GetComponent<Rigidbody>().velocity = new Vector3(GetComponent<Rigidbody>().velocity.x, GetComponent<Rigidbody>().velocity.y, tmpMaxSpd * -1);
+		}
 	}
 
 	void checkInput()
