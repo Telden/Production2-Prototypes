@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CarMovement : MonoBehaviour {
-
+public class CarMovement : MonoBehaviour
+{
 	/*Private Variables*/
 	/*[SerializeField]
 	private float mCurrentAcceleration = 0;
@@ -23,6 +23,7 @@ public class CarMovement : MonoBehaviour {
 	public float tmpRot;
 	public float tmpRotLess;
 	public float tmpDrag;
+	public float jumpForce;
 
 	[Header("Ground")]
 	public LayerMask ground;
@@ -34,20 +35,23 @@ public class CarMovement : MonoBehaviour {
 	public string axisVer;
 	public KeyCode keyRight;
 	public KeyCode keyLeft;
+	public KeyCode keyJump;
 
 	[Header("Attacking")]
-	public GameObject punchRight;
-	public GameObject punchLeft;
+	public GameObject punchHitbox;
+	public Transform[] hitboxLocations;
 	public float startUp;
 	public float duration;
 	public bool punching;
 
+	private Rigidbody rb;
+
 	void Start ()
 	{
-		GetComponent<Rigidbody>().drag = tmpDrag;
+		rb = GetComponent<Rigidbody>();
 
-		punchRight.SetActive(false);
-		punchLeft.SetActive(false);
+		rb.drag = tmpDrag;
+		punchHitbox.SetActive(false);
 	}
 
 	void Update ()
@@ -66,18 +70,20 @@ public class CarMovement : MonoBehaviour {
 
 	void tmpMovement()
 	{
+		float turnRestriction = rb.velocity.magnitude / tmpMaxSpd;
+
 		// add forward and backward movement using GetAxis
-		GetComponent<Rigidbody>().AddForce(transform.forward * Input.GetAxis(axisVer) * tmpSpd);
+		rb.AddForce(transform.forward * Input.GetAxis(axisVer) * tmpSpd);
 
 		if (punching)
 		{
 			// rotate the vehicle using GetAxis
-			transform.Rotate(0, Input.GetAxis(axisHor) * tmpRotLess, 0);
+			transform.Rotate(0, Input.GetAxis(axisHor) * tmpRotLess * turnRestriction, 0);
 		}
 		else
 		{
 			// rotate the vehicle using GetAxis
-			transform.Rotate(0, Input.GetAxis(axisHor) * tmpRot, 0);
+			transform.Rotate(0, Input.GetAxis(axisHor) * tmpRot * turnRestriction, 0);
 		}
 
 		Debug.DrawLine(transform.position + transform.forward * 5, transform.position);
@@ -85,22 +91,31 @@ public class CarMovement : MonoBehaviour {
 
 	void tmpTerminalVelocity()
 	{
-		if (GetComponent<Rigidbody>().velocity.x > tmpMaxSpd)
+		if (rb.velocity.x > tmpMaxSpd)
 		{
-			GetComponent<Rigidbody>().velocity = new Vector3(tmpMaxSpd, GetComponent<Rigidbody>().velocity.y, GetComponent<Rigidbody>().velocity.z);
+			rb.velocity = new Vector3(tmpMaxSpd, rb.velocity.y, rb.velocity.z);
 		}
-		if (GetComponent<Rigidbody>().velocity.x < tmpMaxSpd * -1)
+		if (rb.velocity.x < tmpMaxSpd * -1)
 		{
-			GetComponent<Rigidbody>().velocity = new Vector3(tmpMaxSpd * -1, GetComponent<Rigidbody>().velocity.y, GetComponent<Rigidbody>().velocity.z);
+			rb.velocity = new Vector3(tmpMaxSpd * -1, rb.velocity.y, rb.velocity.z);
 		}
 
-		if (GetComponent<Rigidbody>().velocity.z > tmpMaxSpd)
+		if (rb.velocity.z > tmpMaxSpd)
 		{
-			GetComponent<Rigidbody>().velocity = new Vector3(GetComponent<Rigidbody>().velocity.x, GetComponent<Rigidbody>().velocity.y, tmpMaxSpd);
+			rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, tmpMaxSpd);
 		}
-		if (GetComponent<Rigidbody>().velocity.z < tmpMaxSpd * -1)
+		if (rb.velocity.z < tmpMaxSpd * -1)
 		{
-			GetComponent<Rigidbody>().velocity = new Vector3(GetComponent<Rigidbody>().velocity.x, GetComponent<Rigidbody>().velocity.y, tmpMaxSpd * -1);
+			rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, tmpMaxSpd * -1);
+		}
+
+		if (rb.velocity.y > tmpMaxSpd)
+		{
+			rb.velocity = new Vector3(rb.velocity.x, tmpMaxSpd, rb.velocity.z);
+		}
+		if (rb.velocity.y < tmpMaxSpd * -1)
+		{
+			rb.velocity = new Vector3(rb.velocity.x, tmpMaxSpd * -1, rb.velocity.z);
 		}
 	}
 
@@ -118,7 +133,7 @@ public class CarMovement : MonoBehaviour {
 
 	void tmpApplyArtificialGravity()
 	{
-		GetComponent<Rigidbody>().AddForce(transform.up * -1 * tmpArtificialGravityForce);
+		rb.AddForce(transform.up * -1 * tmpArtificialGravityForce);
 	}
 
 	void tmpPunch()
@@ -132,72 +147,55 @@ public class CarMovement : MonoBehaviour {
 		{
 			Invoke("DoPunchLeft", startUp);
 		}
+
+		if (Input.GetKeyDown (keyJump) && !punching)
+		{
+			Invoke ("DoPunchJump", startUp); 
+		}
 	}
 
 	// doing punches
-		private void DoPunchRight()
-		{
-			punchRight.SetActive(true);
-			punching = true;
-			Invoke("StopPunchRight", duration);
-		}
-		private void DoPunchLeft()
-		{
-			punchLeft.SetActive(true);
-			punching = true;
-			Invoke("StopPunchLeft", duration);
-		}
+	private void DoPunchRight()
+	{
+		punchHitbox.transform.position = hitboxLocations[0].position;
+		punchHitbox.SetActive(true);
+		punching = true;
+		Invoke("StopPunchRight", duration);
+	}
+
+	private void DoPunchLeft()
+	{
+		punchHitbox.transform.position = hitboxLocations[1].position;
+		punchHitbox.SetActive(true);
+		punching = true;
+		Invoke("StopPunchLeft", duration);
+	}
+
+	private void DoPunchJump()
+	{
+		punchHitbox.transform.position = hitboxLocations[2].position;
+		punchHitbox.SetActive(true);
+		punching = true;
+		rb.AddForce(transform.up * jumpForce);
+		Invoke("StopPunchJump", duration);
+	}
 
 	// stopping punches
-		private void StopPunchRight()
-		{
-			punching = false;
-			punchRight.SetActive(false);
-		}
-		private void StopPunchLeft()
-		{
-			punching = false;
-			punchLeft.SetActive(false);
-		}
-
-	/*void checkInput()
+	private void StopPunchRight()
 	{
-		//Forwards
-		if(Input.GetKey(KeyCode.UpArrow))
-		{
-			mCurrentAcceleration += mAccelerationIncrease;
-			if(mCurrentAcceleration < mMaxVelocity)
-				transform.GetComponent<Rigidbody>().AddForce(transform.forward * mCurrentAcceleration);
-			else
-			{
-				transform.GetComponent<Rigidbody>().AddForce(transform.forward * mMaxVelocity);
-				mCurrentAcceleration = mMaxVelocity;
-			}
-		}
+		punching = false;
+		punchHitbox.SetActive(false);
+	}
 
-		//Backwards
-		if(Input.GetKey(KeyCode.DownArrow))
-		{
-			mCurrentAcceleration -= mAccelerationIncrease;
-			if(mCurrentAcceleration > mMaxVelocity * -1)
-				transform.GetComponent<Rigidbody>().AddForce((transform.forward  *-1) * mCurrentAcceleration);
-			else
-			{
-				transform.GetComponent<Rigidbody>().AddForce((transform.forward *-1) * mMaxVelocity);
-				mCurrentAcceleration = mMaxVelocity * -1;
-			}
-		}
+	private void StopPunchLeft()
+	{
+		punching = false;
+		punchHitbox.SetActive(false);
+	}
 
-		//Right
-		if(Input.GetKey(KeyCode.RightArrow))
-		{
-			transform.Rotate(0,mRotationVelocity,0);
-		}
-
-		//Left
-		if(Input.GetKey(KeyCode.LeftArrow))
-		{
-			transform.Rotate(0,-mRotationVelocity,0);
-		}
-	}*/
+	private void StopPunchJump()
+	{
+		punching = false;
+		punchHitbox.SetActive(false);
+	}
 }
