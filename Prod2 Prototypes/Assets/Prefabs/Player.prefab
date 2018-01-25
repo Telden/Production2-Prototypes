@@ -41,6 +41,7 @@ GameObject:
   - component: {fileID: 23942248404085890}
   - component: {fileID: 135415129901046752}
   - component: {fileID: 114726758241267372}
+  - component: {fileID: 114973743805006556}
   - component: {fileID: 114816585105451214}
   - component: {fileID: 54377111152652544}
   m_Layer: 0
@@ -380,30 +381,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b65f1242399bbd43ab9aef413b5e2e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tmpSpd: 50
-  tmpMaxSpd: 30
-  tmpRot: 4
-  tmpRotLess: 1
-  tmpDrag: 2
-  jumpForce: 500
+  rb: {fileID: 0}
+  spd: 50
+  maxSpd: 30
+  rot: 4
+  rotLess: 1
+  drag: 2
   ground:
     serializedVersion: 2
     m_Bits: 256
   grounded: 0
-  tmpArtificialGravityForce: 50
+  artificialGravityForce: 0
   axisHor: Horizontal
   axisVer: Vertical
-  keyRight: 101
-  keyLeft: 113
-  keyJump: 32
-  punchHitbox: {fileID: 1150129882337980}
-  hitboxLocations:
-  - {fileID: 4918871961985130}
-  - {fileID: 4455464977776292}
-  - {fileID: 4461452633991604}
-  startUp: 0.25
-  duration: 0.5
-  punching: 0
 --- !u!114 &114816585105451214
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -417,6 +407,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   knockbackForce: 5000
   maxHealth: 0
+--- !u!114 &114973743805006556
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1412642552823944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63c14e25a6249664ea4289c174f23eaa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rb: {fileID: 0}
+  punchHitbox: {fileID: 1150129882337980}
+  hitboxLocations:
+  - {fileID: 4918871961985130}
+  - {fileID: 4455464977776292}
+  - {fileID: 4461452633991604}
+  startUp: 0.25
+  duration: 0.5
+  jumpForce: 0
+  punching: 0
 --- !u!124 &124566652829347246
 Behaviour:
   m_ObjectHideFlags: 1
