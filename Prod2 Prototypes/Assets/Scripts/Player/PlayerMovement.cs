@@ -56,15 +56,14 @@ public class PlayerMovement : Player
 		rb.AddForce(transform.forward * Input.GetAxis(axisVer) * spd);
 
 		float tmpHorAxis;
-		if (rb.velocity.magnitude <= 0)
+		/*if (Vector3.Angle(transform.forward, rb.velocity.normalized) > 90)
 		{
 			Debug.Log("mag is negaitive");
 			tmpHorAxis = Input.GetAxis(axisHor) * -1;
-		}
-		else
-		{
-			tmpHorAxis = Input.GetAxis(axisHor);
-		}
+		}*/
+
+		//else
+		tmpHorAxis = Input.GetAxis(axisHor);
 
 		if (GetComponent<PlayerPunch>().punching)
 		{
