@@ -22,17 +22,24 @@ public class Grapple : MonoBehaviour
 	public float mGrappleDistance;
 	public float mGrappleTime = 0;
 	private Rigidbody mGrappleHookRB;
-
+	private bool mMovePlayer;
 	//Lerping  variables
 	public float mTime = 0;
 	public  float interval;
-
+	public GameObject hitObject;
 	private Vector3 mGrappleTarget;
 
+	//rendering components of the grapplehook
+	SphereCollider mHitBox;
+	MeshRenderer mMeshRender;
 	void Start ()
 	{
 		player = GameObject.Find("Player");
 		mGrappleHookRB = this.GetComponent<Rigidbody>();
+		mHitBox = this.GetComponent<SphereCollider>();
+		mHitBox.enabled = false;
+		mMeshRender = this.GetComponent<MeshRenderer>();
+		mMeshRender.enabled = false;
 		mShouldPull = false;
 		mGrappleLatched = false;
 		mGrappleLaunched = false;
@@ -41,10 +48,13 @@ public class Grapple : MonoBehaviour
 
 	void Update ()
 	{
+		if(!mGrappleLatched && !mGrappleLaunched && !mGrappleReturn)
+			updatePosition();
 		checkInput();
-		if(mGrappleLaunched)
+		if(mGrappleLaunched || mGrappleReturn)
 			moveGrappleHook();
-		//DoPointer();
+		if(mMovePlayer)
+			movePlayer();
 
 	}
 
@@ -67,17 +77,36 @@ public class Grapple : MonoBehaviour
 			}
 		}
 
-		if(Input.GetKeyUp(KeyCode.Space) &&!mGrappleLaunched)
+		if(Input.GetKeyUp(KeyCode.R) && mGrappleLatched)
+		{
+			mGrappleReturn = true;
+			mGrappleLatched  = false;
+		}
+
+		if(Input.GetKeyUp(KeyCode.Space) &&!mGrappleLaunched && !mGrappleLatched)
 		{
 			this.GetComponent<Rigidbody>().velocity = (mTargetPoint.transform.position - this.transform.position).normalized * mGrappleSpeed;
+			mHitBox.enabled = true;
+			mMeshRender.enabled = true;
 			mGrappleLaunched = true;
 		}
+
+		else if(Input.GetKey(KeyCode.Space) && mGrappleLatched)
+		{
+			doGrappleHook();
+		}
+
+		if(!Input.GetKey(KeyCode.Space)  && mShouldPull)
+			mTime = 0;
 	}
 
-
+	private void updatePosition()
+	{
+		this.transform.position = mReturnPoint.transform.position;
+	}
 	private void moveGrappleHook()
 	{
-		if(mGrappleLaunched && !mGrappleReturn)
+		if(mGrappleLaunched && !mGrappleReturn && !mGrappleLatched)
 		{
 			//Check the distance between player and the hook
 			float distance = Vector3.Distance(this.transform.position, player.transform.position);
@@ -88,7 +117,7 @@ public class Grapple : MonoBehaviour
 				mGrappleTime  = 0;
 			}
 		}
-		else if(this.transform.position != mReturnPoint.transform.position && mGrappleReturn)
+		else if(this.transform.position != mReturnPoint.transform.position && mGrappleReturn && !mGrappleLatched)
 		{
 			Vector3 tmp = Vector3.Lerp(this.transform.position, mReturnPoint.transform.position, mGrappleTime);
 			this.transform.position = tmp;
@@ -102,8 +131,72 @@ public class Grapple : MonoBehaviour
 				mGrappleReturn = false;
 				mGrappleLaunched = false;
 				mGrappleTime =  0;
+				resetGrappleHook();
 			}
 		}
+	}
+
+	private void doGrappleHook()
+	{
+		if(!mShouldPull)
+		{
+			//player.GetComponent<Rigidbody>().velocity = ( this.transform.position - player.transform.position).normalized * pointerSpeed;
+			mMovePlayer =  true;
+			mHitBox.enabled = false;
+		}
+		else
+		{
+			//Lerp  the hit object towards the player
+			if(hitObject.transform.position != player.transform.position)
+			{
+				Vector3 tmp = Vector3.Lerp(hitObject.transform.position, player.transform.position, mTime);
+				hitObject.transform.position = tmp;
+				mTime += interval * Time.deltaTime;
+			}
+		}
+	}
+
+	private void movePlayer()
+	{
+		if(player.transform.position  != this.transform.position)
+		{
+			Vector3 tmp = Vector3.Lerp(player.transform.position, this.transform.position, mTime);
+			player.transform.position = tmp;
+			mTime += interval * Time.deltaTime;
+			float distance = Vector3.Distance(player.transform.position, this.transform.position);
+			if(distance <= 1)
+			{
+				mTime = 0;
+				player.GetComponent<Rigidbody>().velocity = Vector3.zero;
+				mMovePlayer = false;
+				mGrappleLatched = false;
+				resetGrappleHook();
+
+			}
+				
+		}
+	}
+
+	private void resetGrappleHook()
+	{
+		mHitBox.enabled = false;
+		mMeshRender.enabled = false;
+		this.transform.position = mReturnPoint.transform.position;
+	}
+
+	void OnCollisionEnter(Collision col)
+	{
+		if(col.gameObject.name != "Player")
+		{
+			this.GetComponent<Rigidbody>().velocity =  Vector3.zero;
+			hitObject = col.gameObject;
+			this.transform.parent = hitObject.transform;
+			mHitBox.enabled = false;
+			mGrappleLatched = true;
+			mGrappleLaunched = false;
+		}
+			
+
 	}
 
 }
