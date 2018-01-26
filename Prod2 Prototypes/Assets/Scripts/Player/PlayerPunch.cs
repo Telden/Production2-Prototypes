@@ -59,10 +59,15 @@ public class PlayerPunch : Player
 
 	private void DoPunchJump()
 	{
+		// only actually jump if there's something to jump off of
+		if (GetComponent<PlayerMovement>().grounded == true)
+		{
+			rb.AddForce(transform.up * jumpForce);
+		}
+
 		punchHitbox.transform.position = hitboxLocations[2].position;
 		punchHitbox.SetActive(true);
 		punching = true;
-		rb.AddForce(transform.up * jumpForce);
 		Invoke("StopPunch", duration);
 	}
 

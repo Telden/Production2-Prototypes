@@ -390,8 +390,8 @@ MonoBehaviour:
   ground:
     serializedVersion: 2
     m_Bits: 256
-  grounded: 0
-  artificialGravityForce: 0
+  grounded: 1
+  artificialGravityForce: 50
   axisHor: Horizontal
   axisVer: Vertical
 --- !u!114 &114816585105451214
@@ -426,7 +426,7 @@ MonoBehaviour:
   - {fileID: 4461452633991604}
   startUp: 0.25
   duration: 0.5
-  jumpForce: 0
+  jumpForce: 3000
   punching: 0
 --- !u!124 &124566652829347246
 Behaviour:

@@ -55,15 +55,26 @@ public class PlayerMovement : Player
 		// add forward and backward movement using GetAxis
 		rb.AddForce(transform.forward * Input.GetAxis(axisVer) * spd);
 
+		float tmpHorAxis;
+		if (rb.velocity.magnitude <= 0)
+		{
+			Debug.Log("mag is negaitive");
+			tmpHorAxis = Input.GetAxis(axisHor) * -1;
+		}
+		else
+		{
+			tmpHorAxis = Input.GetAxis(axisHor);
+		}
+
 		if (GetComponent<PlayerPunch>().punching)
 		{
 			// rotate the vehicle using GetAxis
-			transform.Rotate(0, Input.GetAxis(axisHor) * rotLess * turnRestriction, 0);
+			transform.Rotate(0, tmpHorAxis * rotLess * turnRestriction, 0);
 		}
 		else
 		{
 			// rotate the vehicle using GetAxis
-			transform.Rotate(0, Input.GetAxis(axisHor) * rot * turnRestriction, 0);
+			transform.Rotate(0, tmpHorAxis * rot * turnRestriction, 0);
 		}
 
 		Debug.DrawLine(transform.position + transform.forward * 5, transform.position);
@@ -81,7 +92,7 @@ public class PlayerMovement : Player
 			rb.velocity = new Vector3(maxSpd * -1, rb.velocity.y, rb.velocity.z);
 		}
 
-		// y tvs
+		// z tvs
 		if (rb.velocity.z > maxSpd)
 		{
 			rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, maxSpd);
@@ -91,15 +102,15 @@ public class PlayerMovement : Player
 			rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, maxSpd * -1);
 		}
 
-		// z tvs
-		if (rb.velocity.y > maxSpd)
+		// y tvs (but only for falling)
+		/*if (rb.velocity.y > maxSpd)
 		{
 			rb.velocity = new Vector3(rb.velocity.x, maxSpd, rb.velocity.z);
 		}
 		if (rb.velocity.y < maxSpd * -1)
 		{
 			rb.velocity = new Vector3(rb.velocity.x, maxSpd * -1, rb.velocity.z);
-		}
+		}*/
 	}
 
 	void CheckGround()
