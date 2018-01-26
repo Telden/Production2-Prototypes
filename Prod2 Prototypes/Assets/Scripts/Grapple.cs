@@ -10,15 +10,17 @@ public class Grapple : MonoBehaviour
 	public float pointerSpeed;
 	public LayerMask dashTo;
 	public Vector3 currentPoint;
-
+	public GameObject mReturnPoint;
+	public GameObject mTargetPoint;
 
 	//Grapple Variables
-	private bool mShouldPull;
-	private bool mGrappleLatched;
-	private bool mGrappleLaunched;
+	public bool mShouldPull;
+	public bool mGrappleLatched;
+	public bool mGrappleLaunched;
+	public bool mGrappleReturn;
 	public float mGrappleSpeed;
 	public float mGrappleDistance;
-	private float mGrappleTime = 0;
+	public float mGrappleTime = 0;
 	private Rigidbody mGrappleHookRB;
 
 	//Lerping  variables
@@ -34,6 +36,7 @@ public class Grapple : MonoBehaviour
 		mShouldPull = false;
 		mGrappleLatched = false;
 		mGrappleLaunched = false;
+		mGrappleReturn = false;
 	}
 
 	void Update ()
@@ -41,51 +44,13 @@ public class Grapple : MonoBehaviour
 		checkInput();
 		if(mGrappleLaunched)
 			moveGrappleHook();
-		DoPointer();
+		//DoPointer();
 
-	}
-
-	private void DoPointer()
-	{
-		RaycastHit hit;
-		if (Physics.Raycast(transform.position, transform.forward, out hit, dashTo))
-		{
-			pointer.transform.position = hit.point;
-
-			if (Input.GetKeyDown(KeyCode.Space) && !mShouldPull) //&& mGrappleLatched) 
-			{
-				player.GetComponent<Rigidbody>().velocity = (hit.point - transform.position).normalized * pointerSpeed;
-				currentPoint = hit.point;
-			}
-				else if (Input.GetKey(KeyCode.Space) && mShouldPull) //&& mGrappleLatched) 
-			{
-				//Cache the gameobject hit
-				GameObject hitObject = hit.transform.gameObject;
-
-				//Lerp  the hit object towards the player
-				if(hitObject.transform.position != player.transform.position)
-				{
-					Vector3 tmp = Vector3.Lerp(hitObject.transform.position, player.transform.position, mTime);
-					hitObject.transform.position = tmp;
-					mTime += interval * Time.deltaTime;
-				}
-			}
-			else
-				mTime = 0;
-		}
-		else
-		{
-			pointer.transform.position = transform.position;
-		}
-
-		if ((transform.position - currentPoint).magnitude < 2)
-		{
-			player.GetComponent<Rigidbody>().velocity = Vector3.zero;
-		}
 	}
 
 	private void checkInput()
 	{
+
 		if(Input.GetKeyUp(KeyCode.E))
 		{
 			if(mShouldPull)
@@ -104,19 +69,41 @@ public class Grapple : MonoBehaviour
 
 		if(Input.GetKeyUp(KeyCode.Space) &&!mGrappleLaunched)
 		{
-			Vector3
-			mGrappleTarget = player.transform.forward  * mGrappleSpeed;
+			this.GetComponent<Rigidbody>().velocity = (mTargetPoint.transform.position - this.transform.position).normalized * mGrappleSpeed;
 			mGrappleLaunched = true;
 		}
 	}
 
+
 	private void moveGrappleHook()
 	{
-		if(gameObject.transform.position != mGrappleTarget)
+		if(mGrappleLaunched && !mGrappleReturn)
 		{
-			Vector3 tmp = Vector3.Lerp(transform.position, player.transform.position, mGrappleTime);
-			gameObject.transform.position = tmp;
-			mTime += interval * Time.deltaTime;
+			//Check the distance between player and the hook
+			float distance = Vector3.Distance(this.transform.position, player.transform.position);
+			if(distance > mGrappleDistance)
+			{
+				mGrappleReturn = true;
+				this.GetComponent<Rigidbody>().velocity =  Vector3.zero;
+				mGrappleTime  = 0;
+			}
+		}
+		else if(this.transform.position != mReturnPoint.transform.position && mGrappleReturn)
+		{
+			Vector3 tmp = Vector3.Lerp(this.transform.position, mReturnPoint.transform.position, mGrappleTime);
+			this.transform.position = tmp;
+			mGrappleTime +=  interval * Time.deltaTime;
+
+			//Check the distance between player and the hook
+			float distance = Vector3.Distance(this.transform.position, mReturnPoint.transform.position );
+			if(distance < 0.5)
+			{
+				this.transform.position = mReturnPoint.transform.position;
+				mGrappleReturn = false;
+				mGrappleLaunched = false;
+				mGrappleTime =  0;
+			}
 		}
 	}
+
 }

@@ -47,5 +47,7 @@ public class FirstPersonCamera : MonoBehaviour
 
         // apply the rotation
         cam.transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
+
+		this.transform.forward = cam.transform.forward;
 	}
 }
