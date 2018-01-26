@@ -10,21 +10,37 @@ public class Grapple : MonoBehaviour
 	public float pointerSpeed;
 	public LayerMask dashTo;
 	public Vector3 currentPoint;
-	private bool mShouldPull;
 
+
+	//Grapple Variables
+	private bool mShouldPull;
+	private bool mGrappleLatched;
+	private bool mGrappleLaunched;
+	public float mGrappleSpeed;
+	public float mGrappleDistance;
+	private float mGrappleTime = 0;
+	private Rigidbody mGrappleHookRB;
 
 	//Lerping  variables
 	public float mTime = 0;
 	public  float interval;
+
+	private Vector3 mGrappleTarget;
+
 	void Start ()
 	{
 		player = GameObject.Find("Player");
+		mGrappleHookRB = this.GetComponent<Rigidbody>();
 		mShouldPull = false;
+		mGrappleLatched = false;
+		mGrappleLaunched = false;
 	}
 
 	void Update ()
 	{
 		checkInput();
+		if(mGrappleLaunched)
+			moveGrappleHook();
 		DoPointer();
 
 	}
@@ -36,12 +52,12 @@ public class Grapple : MonoBehaviour
 		{
 			pointer.transform.position = hit.point;
 
-			if (Input.GetKeyDown(KeyCode.Space) && !mShouldPull) 
+			if (Input.GetKeyDown(KeyCode.Space) && !mShouldPull) //&& mGrappleLatched) 
 			{
 				player.GetComponent<Rigidbody>().velocity = (hit.point - transform.position).normalized * pointerSpeed;
 				currentPoint = hit.point;
 			}
-			else if (Input.GetKey(KeyCode.Space) && mShouldPull) 
+				else if (Input.GetKey(KeyCode.Space) && mShouldPull) //&& mGrappleLatched) 
 			{
 				//Cache the gameobject hit
 				GameObject hitObject = hit.transform.gameObject;
@@ -84,6 +100,23 @@ public class Grapple : MonoBehaviour
 				print("Pulling");
 				mShouldPull  = true;
 			}
+		}
+
+		if(Input.GetKeyUp(KeyCode.Space) &&!mGrappleLaunched)
+		{
+			Vector3
+			mGrappleTarget = player.transform.forward  * mGrappleSpeed;
+			mGrappleLaunched = true;
+		}
+	}
+
+	private void moveGrappleHook()
+	{
+		if(gameObject.transform.position != mGrappleTarget)
+		{
+			Vector3 tmp = Vector3.Lerp(transform.position, player.transform.position, mGrappleTime);
+			gameObject.transform.position = tmp;
+			mTime += interval * Time.deltaTime;
 		}
 	}
 }
