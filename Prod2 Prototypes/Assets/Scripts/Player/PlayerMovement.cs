@@ -38,6 +38,12 @@ public class PlayerMovement : Player
 		rb = GetComponent<Rigidbody>();
 
 		rb.drag = drag;
+
+		if (gameObject.name == "Player2")
+		{
+			axisVer = axisVer + "2";
+			axisHor = axisHor + "2";
+		}
 	}
 
 	void Update ()

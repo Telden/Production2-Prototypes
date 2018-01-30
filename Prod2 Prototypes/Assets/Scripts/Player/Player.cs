@@ -8,4 +8,6 @@ public class Player : MonoBehaviour
 
 	[HideInInspector]
 	public Rigidbody rb;
+
+
 }

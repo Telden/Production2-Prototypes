@@ -12,9 +12,18 @@ public class PlayerPunch : Player
 	public float jumpForce;
 	public bool punching;
 
+	private string plKey = "PunchLeft", prKey = "PunchRight", jKey = "Jump";
+
 	void Start()
 	{
 		rb = GetComponent<Rigidbody>();
+
+		if (gameObject.name == "Player2")
+		{
+			plKey = plKey + "2";
+			prKey = prKey + "2";
+			jKey = jKey + "2";
+		}
 	}
 
 	void Update()
@@ -24,17 +33,17 @@ public class PlayerPunch : Player
 
 	void CheckInput()
 	{
-		if (Input.GetKeyDown(KeyCode.E) && !punching)
+		if (Input.GetButtonDown(prKey) && !punching)
 		{
 			Invoke("DoPunchRight", startUp);
 		}
 
-		if (Input.GetKeyDown(KeyCode.Q) && !punching)
+		if (Input.GetButtonDown(plKey) && !punching)
 		{
 			Invoke("DoPunchLeft", startUp);
 		}
 
-		if (Input.GetKeyDown (KeyCode.Space) && !punching)
+		if (Input.GetButtonDown (jKey) && !punching)
 		{
 			Invoke ("DoPunchJump", startUp);
 		}
