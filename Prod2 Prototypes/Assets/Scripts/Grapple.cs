@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Grapple : MonoBehaviour
 {
@@ -28,10 +29,13 @@ public class Grapple : MonoBehaviour
 	public  float interval;
 	public GameObject hitObject;
 	private Vector3 mGrappleTarget;
-
+	public Text mTargeter;
+	Vector3 mDistanceVector;
 	//rendering components of the grapplehook
 	SphereCollider mHitBox;
 	MeshRenderer mMeshRender;
+	float mPullInterval = 0.1f;
+	//ParticleSystem  mParts;
 	void Start ()
 	{
 		player = GameObject.Find("Player");
@@ -40,6 +44,8 @@ public class Grapple : MonoBehaviour
 		mHitBox.enabled = false;
 		mMeshRender = this.GetComponent<MeshRenderer>();
 		mMeshRender.enabled = false;
+		//mParts = this.GetComponent<ParticleSystem>();
+		//mParts.Stop();
 		mShouldPull = false;
 		mGrappleLatched = false;
 		mGrappleLaunched = false;
@@ -48,6 +54,7 @@ public class Grapple : MonoBehaviour
 
 	void Update ()
 	{
+		updateUI();
 		if(!mGrappleLatched && !mGrappleLaunched && !mGrappleReturn)
 			updatePosition();
 		checkInput();
@@ -56,6 +63,23 @@ public class Grapple : MonoBehaviour
 		if(mMovePlayer)
 			movePlayer();
 
+	}
+
+	private void updateUI()
+	{
+
+		mDistanceVector = Vector3.Normalize(player.transform.forward) * mGrappleDistance;
+		RaycastHit hit;
+		if(Physics.Raycast(player.transform.position, mDistanceVector, out hit, dashTo))
+		{
+			pointer.transform.position = hit.point;
+			mTargeter.color = new Color(255, 0, 0);
+		}
+		else
+		{
+			pointer.transform.position = player.transform.position;
+			mTargeter.color = new Color(255, 255, 0);
+		}
 	}
 
 	private void checkInput()
@@ -147,11 +171,12 @@ public class Grapple : MonoBehaviour
 		else
 		{
 			//Lerp  the hit object towards the player
-			if(hitObject.transform.position != player.transform.position)
+			float distance = Vector3.Distance(hitObject.transform.position, player.transform.position);
+			if(hitObject.transform.position != player.transform.position && distance > 15)
 			{
 				Vector3 tmp = Vector3.Lerp(hitObject.transform.position, player.transform.position, mTime);
 				hitObject.transform.position = tmp;
-				mTime += interval * Time.deltaTime;
+				mTime += mPullInterval * Time.deltaTime;
 			}
 		}
 	}
@@ -182,21 +207,29 @@ public class Grapple : MonoBehaviour
 		mHitBox.enabled = false;
 		mMeshRender.enabled = false;
 		this.transform.position = mReturnPoint.transform.position;
+		//resetParticleSystem();
 	}
 
 	void OnCollisionEnter(Collision col)
 	{
 		if(col.gameObject.name != "Player")
 		{
+			//mParts.Play();
 			this.GetComponent<Rigidbody>().velocity =  Vector3.zero;
 			hitObject = col.gameObject;
 			this.transform.parent = hitObject.transform;
 			mHitBox.enabled = false;
 			mGrappleLatched = true;
 			mGrappleLaunched = false;
+			//Invoke("resetParticleSystem", 6f);
 		}
 			
 
 	}
+
+	/*void resetParticleSystem()
+	{
+		mParts.Stop();
+	}*/
 
 }
