@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CollectibleManager : MonoBehaviour {
 
 	//public float mTotalPickups;
 	public float mPickupsLeft = 0;
 	public  Canvas tmpWinScreen;
+	public Text mCollectibleUI;
 
 	// Use this for initialization
 	void Start () {
@@ -16,6 +18,7 @@ public class CollectibleManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+		mCollectibleUI.text = "Shards left: " + mPickupsLeft.ToString();
 		if(mPickupsLeft == 0)
 		{
 			print("Player wins!");

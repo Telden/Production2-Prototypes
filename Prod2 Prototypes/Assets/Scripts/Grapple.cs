@@ -172,7 +172,7 @@ public class Grapple : MonoBehaviour
 		{
 			//Lerp  the hit object towards the player
 			float distance = Vector3.Distance(hitObject.transform.position, player.transform.position);
-			if(hitObject.transform.position != player.transform.position && distance > 15)
+			if(hitObject.transform.position != player.transform.position && distance > 10)
 			{
 				Vector3 tmp = Vector3.Lerp(hitObject.transform.position, player.transform.position, mTime);
 				hitObject.transform.position = tmp;
